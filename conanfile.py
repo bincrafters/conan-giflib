@@ -1,7 +1,9 @@
-from conans import ConanFile
-import os, shutil
-from conans.tools import download, unzip, replace_in_file
-from conans import CMake, ConfigureEnvironment
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import os
+import shutil
+from conans import CMake, AutoToolsBuildEnvironment, ConanFile, tools
 
 
 class ZlibNgConan(ConanFile):
@@ -12,16 +14,14 @@ class ZlibNgConan(ConanFile):
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False], "fPIC": [True, False]}
     default_options = "shared=False", "fPIC=True"
-    url="http://github.com/ZaMaZaN4iK/conan-giflib"
-    license="https://sourceforge.net/p/giflib/code/ci/master/tree/COPYING"
+    url = "http://github.com/ZaMaZaN4iK/conan-giflib"
+    license = "https://sourceforge.net/p/giflib/code/ci/master/tree/COPYING"
     exports = ["FindGIF.cmake", "CMakeLists.txt", "getopt.c", "getopt.h", "unistd.h.in"]
+    install = 'gitfil-install'
     # The exported files I took them from https://github.com/bjornblissing/osg-3rdparty-cmake/tree/master/giflib
     
     def config(self):
-        try: # Try catch can be removed when conan 0.8 is released
-            del self.settings.compiler.libcxx 
-        except: 
-            pass
+        del self.settings.compiler.libcxx
         
         if self.settings.os == "Windows":
             try:
@@ -31,56 +31,59 @@ class ZlibNgConan(ConanFile):
                 pass
             # self.ZIP_FOLDER_NAME = "giflib-%s-windows" % self.version
 
-
     def source(self):
-#         if self.settings.os == "Windows":
-#             zip_name = "giflib-%s-windows.zip" % self.version
-#         else: 
         zip_name = "%s.tar.gz" % self.ZIP_FOLDER_NAME
-        download("http://downloads.sourceforge.net/project/giflib/%s" % zip_name, zip_name)
-        unzip(zip_name)
-        self.output.info("Unzipped!")
-        if self.settings.os != "Windows":
-            self.run("chmod +x ./%s/autogen.sh" % self.ZIP_FOLDER_NAME)
-        else:
+        tools.download("http://downloads.sourceforge.net/project/giflib/%s" % zip_name, zip_name)
+        tools.unzip(zip_name)
+        os.unlink(zip_name)
+        if not self.settings.os != "Windows":
             for filename in ["CMakeLists.txt", "getopt.c", "getopt.h", "unistd.h.in"]:
                 shutil.copy(filename, os.path.join(self.ZIP_FOLDER_NAME, filename))
-            
 
-    def build(self):
-        if self.settings.os == "Linux" or self.settings.os == "Macos":
-            env = ConfigureEnvironment(self.deps_cpp_info, self.settings)
-            if self.options.fPIC:
-                env_line = env.command_line.replace('CFLAGS="', 'CFLAGS="-fPIC ')
-            else:
-                env_line = env.command_line
-            
-            self.run("cd %s && %s ./autogen.sh" % (self.ZIP_FOLDER_NAME, env_line))
-            self.run("chmod +x ./%s/configure" % self.ZIP_FOLDER_NAME)
+    def build_configure(self):
+        prefix = os.path.abspath(self.install)
+        env_build = AutoToolsBuildEnvironment(self)
+        env_build.fpic = self.options.fPIC
+
+        args = ['--prefix=%s' % prefix]
+        if self.options.shared:
+            args.extend(['--disable-static', '--enable-shared'])
+        else:
+            args.extend(['--enable-static', '--disable-shared'])
+
+        with tools.chdir(self.ZIP_FOLDER_NAME):
             if self.settings.os == "Macos":
                 old_str = '-install_name \$rpath/\$soname'
                 new_str = '-install_name \$soname'
-                replace_in_file("./%s/configure" % self.ZIP_FOLDER_NAME, old_str, new_str)
+                tools.replace_in_file("configure", old_str, new_str)
 
-            
-            self.run("cd %s && %s ./configure" % (self.ZIP_FOLDER_NAME, env_line))
-            self.run("cd %s && %s make" % (self.ZIP_FOLDER_NAME, env_line))
+            self.run('chmod +x configure')
+            env_build.configure(args=args)
+            env_build.make()
+            env_build.make(args=['install'])
+
+    def build_windows(self):
+        cmake = CMake(self.settings)
+        self.run("cd %s && mkdir _build" % self.ZIP_FOLDER_NAME)
+        cd_build = "cd %s/_build" % self.ZIP_FOLDER_NAME
+        self.output.warn('%s && cmake .. %s' % (cd_build, cmake.command_line))
+        self.run('%s && cmake .. %s' % (cd_build, cmake.command_line))
+        self.output.warn("%s && cmake --build . %s" % (cd_build, cmake.build_config))
+        self.run("%s && cmake --build . %s" % (cd_build, cmake.build_config))
+
+    def build(self):
+        if self.settings.os == "Windows":
+            self.build_windows()
         else:
-            cmake = CMake(self.settings)
-            self.run("cd %s && mkdir _build" % self.ZIP_FOLDER_NAME)
-            cd_build = "cd %s/_build" % self.ZIP_FOLDER_NAME
-            self.output.warn('%s && cmake .. %s' % (cd_build, cmake.command_line))
-            self.run('%s && cmake .. %s' % (cd_build, cmake.command_line))
-            self.output.warn("%s && cmake --build . %s" % (cd_build, cmake.build_config))
-            self.run("%s && cmake --build . %s" % (cd_build, cmake.build_config))
- 
+            self.build_configure()
+
     def package(self):
         # Copy FindGIF.cmake to package
         self.copy("FindGIF.cmake", ".", ".")
         
         # Copying zlib.h, zutil.h, zconf.h
-        self.copy("*.h", "include", "%s" % (self.ZIP_FOLDER_NAME), keep_path=False)
-        self.copy("*.h", "include", "%s" % ("_build"), keep_path=False)
+        self.copy("*.h", "include", "%s" % self.ZIP_FOLDER_NAME, keep_path=False)
+        self.copy("*.h", "include", "%s" % "_build", keep_path=False)
 
         if not self.settings.os == "Windows" and self.options.shared:
             if self.settings.os == "Macos":
