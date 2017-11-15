@@ -1,7 +1,6 @@
 from conans.model.conan_file import ConanFile
 from conans import CMake
 import os
-from cStringIO import StringIO
 
 ############### CONFIGURE THESE VALUES ##################
 default_user = "zamazan4ik"
@@ -10,6 +9,7 @@ default_channel = "stable"
 
 channel = os.getenv("CONAN_CHANNEL", default_channel)
 username = os.getenv("CONAN_USERNAME", default_user)
+
 
 class DefaultNameConan(ConanFile):
     name = "DefaultName"
