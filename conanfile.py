@@ -18,6 +18,7 @@ class ZlibNgConan(ConanFile):
     license = "https://sourceforge.net/p/giflib/code/ci/master/tree/COPYING"
     exports = ["FindGIF.cmake", "CMakeLists.txt", "getopt.c", "getopt.h", "unistd.h.in"]
     install = 'gitfil-install'
+    description = 'The GIFLIB project maintains the giflib service library, which has been pulling images out of GIFs since 1989'
     # The exported files I took them from https://github.com/bjornblissing/osg-3rdparty-cmake/tree/master/giflib
     
     def config(self):
@@ -53,8 +54,8 @@ class ZlibNgConan(ConanFile):
 
         with tools.chdir(self.ZIP_FOLDER_NAME):
             if self.settings.os == "Macos":
-                old_str = '-install_name \$rpath/\$soname'
-                new_str = '-install_name \$soname'
+                old_str = r'-install_name \$rpath/\$soname'
+                new_str = r'-install_name \$soname'
                 tools.replace_in_file("configure", old_str, new_str)
 
             self.run('chmod +x configure')
