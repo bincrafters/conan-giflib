@@ -6,7 +6,7 @@ import shutil
 from conans import CMake, AutoToolsBuildEnvironment, ConanFile, tools
 
 
-class ZlibNgConan(ConanFile):
+class GiflibConan(ConanFile):
     name = "giflib"
     version = "5.1.3"
     generators = "cmake"
