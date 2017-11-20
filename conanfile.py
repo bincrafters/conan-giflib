@@ -84,4 +84,4 @@ class GiflibConan(ConanFile):
             else:
                 self.cpp_info.libs = ['libgif', 'getarg']
         else:
-            self.cpp_info.libs = ['gif', 'getarg']
+            self.cpp_info.libs = ['getarg', 'gif']
