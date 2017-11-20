@@ -16,8 +16,8 @@ class GiflibConan(ConanFile):
     url = "http://github.com/bincrafters/conan-giflib"
     license = "https://sourceforge.net/p/giflib/code/ci/master/tree/COPYING"
     exports = ["FindGIF.cmake", "CMakeLists.txt", "getopt.c", "getopt.h", "unistd.h.in"]
-    install = 'gitfil-install'
-    description = 'The GIFLIB project maintains the giflib service library, which has been pulling images out of GIFs since 1989'
+    description = 'The GIFLIB project maintains the giflib service library, ' \
+                  'which has been pulling images out of GIFs since 1989'
     # The exported files I took them from https://github.com/bjornblissing/osg-3rdparty-cmake/tree/master/giflib
     
     def config(self):
@@ -29,7 +29,6 @@ class GiflibConan(ConanFile):
                 self.options.remove("fPIC")
             except: 
                 pass
-            # self.ZIP_FOLDER_NAME = "giflib-%s-windows" % self.version
 
     def source(self):
         zip_name = "%s-%s" % (self.name, self.version)
@@ -52,11 +51,10 @@ class GiflibConan(ConanFile):
         cmake.build()
 
     def build_configure(self):
-        prefix = os.path.abspath(self.install)
         env_build = AutoToolsBuildEnvironment(self)
         env_build.fpic = self.options.fPIC
 
-        args = ['--prefix=%s' % prefix]
+        args = ['--prefix=%s' % self.package_folder]
         if self.options.shared:
             args.extend(['--disable-static', '--enable-shared'])
         else:
@@ -73,17 +71,11 @@ class GiflibConan(ConanFile):
             env_build.make()
             env_build.make(args=['install'])
 
-            
     def package(self):
         # Copy FindGIF.cmake to package
         self.copy("FindGIF.cmake", ".", ".")
-        
-        # Copying zlib.h, zutil.h, zconf.h
-        self.copy("*.h", "include", "%s" % "sources", keep_path=False)
-        self.copy(pattern="libgif.lib", dst="lib", keep_path=False)
-        self.copy(pattern="libgif.dylib", dst="lib", keep_path=False)
-        self.copy(pattern="libgif.a", dst="lib", keep_path=False)
-        self.copy(pattern="libgif.so*", dst="lib", keep_path=False)
+        self.copy('getarg.h', src=os.path.join('sources', 'util'), dst='include')
+        self.copy('libgetarg.a', src=os.path.join('sources', 'util'), dst='lib')
         
     def package_info(self):
         if self.settings.compiler == "Visual Studio":
