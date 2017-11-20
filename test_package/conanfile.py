@@ -13,9 +13,12 @@ class TestPackageConan(ConanFile):
 
     def test(self):
         with tools.environment_append(RunEnvironment(self).vars):
+            img_name = os.path.join(self.conanfile_directory, "testimg.gif")
+            bin_path = os.path.join("bin", "test_package")
+            command = "%s %s" % (bin_path, img_name)
             if self.settings.os == "Windows":
-                self.run(os.path.join("bin","test_package"))
+                self.run(command)
             elif self.settings.os == "Macos":
-                self.run("DYLD_LIBRARY_PATH=%s %s"%(os.environ.get('DYLD_LIBRARY_PATH', ''),os.path.join("bin","test_package")))
+                self.run("DYLD_LIBRARY_PATH=%s %s" % (os.environ.get('DYLD_LIBRARY_PATH', ''), command))
             else:
-                self.run("LD_LIBRARY_PATH=%s %s"%(os.environ.get('LD_LIBRARY_PATH', ''),os.path.join("bin","test_package")))
+                self.run("LD_LIBRARY_PATH=%s %s" % (os.environ.get('LD_LIBRARY_PATH', ''), command))

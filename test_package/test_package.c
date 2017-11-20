@@ -78,21 +78,18 @@ int main(int argc, char **argv)
     }
 
     /* Open stdout for the output file: */
-    if ((GifFile = EGifOpenFileHandle(1, &ErrorCode)) == NULL) {
+    if ((GifFile = EGifOpenFileName("out.gif", 0, &ErrorCode)) == NULL) {
 	PrintGifError(ErrorCode);
 	exit(EXIT_FAILURE);
     }
 
     /* Read the color map in ColorFile into this color map: */
-    ColorMapSize = 0;
-    while (fscanf(stdin,
-		  "%*3d %3d %3d %3d\n",
-		  &red, &green, &blue) == 3) {
-	    ScratchMap[ColorMapSize].Red = red;
-	    ScratchMap[ColorMapSize].Green = green;
-	    ScratchMap[ColorMapSize].Blue = blue;
-	    ColorMapSize++;
-	}
+    for (ColorMapSize = 0; ColorMapSize < 256; ColorMapSize++)
+    {
+        ScratchMap[ColorMapSize].Red = ColorMapSize;
+	    ScratchMap[ColorMapSize].Green = ColorMapSize;
+	    ScratchMap[ColorMapSize].Blue = ColorMapSize;
+    }
 
     if ((ColorMap = GifMakeMapObject(1 << GifBitSize(ColorMapSize), ScratchMap)) == NULL)
 	GIF_EXIT("Failed to allocate memory required, aborted.");
