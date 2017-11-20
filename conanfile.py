@@ -15,26 +15,26 @@ class GiflibConan(ConanFile):
     default_options = "shared=False", "fPIC=True"
     url = "http://github.com/bincrafters/conan-giflib"
     license = "https://sourceforge.net/p/giflib/code/ci/master/tree/COPYING"
-    exports = ["FindGIF.cmake", "CMakeLists.txt", "getopt.c", "getopt.h", "unistd.h.in"]
+    exports = ["FindGIF.cmake", "getopt.c", "getopt.h", "unistd.h"]
     description = 'The GIFLIB project maintains the giflib service library, ' \
                   'which has been pulling images out of GIFs since 1989'
     # The exported files I took them from https://github.com/bjornblissing/osg-3rdparty-cmake/tree/master/giflib
+
+    def build_requirements(self):
+        if self.settings.os == "Windows":
+            self.build_requires("cygwin_installer/2.9.0@bincrafters/testing")
     
     def config(self):
         del self.settings.compiler.libcxx
         
         if self.settings.os == "Windows":
-            try:
-                self.options.remove("shared")
-                self.options.remove("fPIC")
-            except: 
-                pass
+            self.options.remove("fPIC")
 
     def source(self):
         zip_name = "%s-%s" % (self.name, self.version)
         tools.get("http://downloads.sourceforge.net/project/giflib/%s.tar.gz" % zip_name)
         if self.settings.os == "Windows":
-            for filename in ["CMakeLists.txt", "getopt.c", "getopt.h", "unistd.h.in"]:
+            for filename in ["getopt.c", "getopt.h", "unistd.h"]:
                 shutil.copy(filename, os.path.join(zip_name, filename))
         os.rename(zip_name, "sources")
 
@@ -44,11 +44,56 @@ class GiflibConan(ConanFile):
         else:
             self.build_configure()
 
+    def run_in_cygwin(self, command):
+        with tools.environment_append({'PATH': [self.deps_env_info['cygwin_installer'].CYGWIN_BIN]}):
+            bash = "%CYGWIN_BIN%\\bash"
+            vcvars_command = tools.vcvars_command(self.settings)
+            self.run("{vcvars_command} && {bash} -c ^'{command}'".format(
+                vcvars_command=vcvars_command,
+                bash=bash,
+                command=command))
+
     def build_windows(self):
-        cmake = CMake(self)
-        cmake.configure(source_dir="sources")
-        self.output.info('Running CMake command: ' + cmake.command_line)
-        cmake.build()
+        with tools.chdir("sources"):
+            if self.settings.arch == "x86":
+                host = "i686-w64-mingw32"
+            elif self.settings.arch == "x86_64":
+                host = "x86_64-w64-mingw32"
+            else:
+                raise Exception("unsupported architecture %s" % self.settings.arch)
+            if self.options.shared:
+                options = '--disable-static --enable-shared'
+            else:
+                options = '--enable-static --disable-shared'
+
+            self.run_in_cygwin('cl getopt.c -DWIN32 /c')
+            self.run_in_cygwin('lib getopt.obj /OUT:getopt.lib')
+
+            getopt = os.path.abspath('getopt.lib')
+            getopt = tools.unix_path(getopt)
+            getopt = '/cygdrive' + getopt
+
+            prefix = tools.unix_path(os.path.abspath(self.package_folder))
+            prefix = '/cygdrive' + prefix
+            self.run_in_cygwin('./configure '
+                               '{options} '
+                               '--host={host} '
+                               '--prefix={prefix} '
+                               'CC="$PWD/compile cl -nologo" '
+                               'CFLAGS="-{runtime}" '
+                               'CXX="$PWD/compile cl -nologo" '
+                               'CXXFLAGS="-{runtime}" '
+                               'CPPFLAGS="-I{prefix}/include" '
+                               'LDFLAGS="-L{prefix}/lib {getopt}" '
+                               'LD="link" '
+                               'NM="dumpbin -symbols" '
+                               'STRIP=":" '
+                               'AR="$PWD/ar-lib lib" '
+                               'RANLIB=":" '.format(host=host, prefix=prefix, options=options, getopt=getopt,
+                                                    runtime=str(self.settings.compiler.runtime)))
+
+            self.run_in_cygwin('make')
+            self.run_in_cygwin('make install')
 
     def build_configure(self):
         env_build = AutoToolsBuildEnvironment(self)
@@ -75,13 +120,15 @@ class GiflibConan(ConanFile):
         # Copy FindGIF.cmake to package
         self.copy("FindGIF.cmake", ".", ".")
         self.copy('getarg.h', src=os.path.join('sources', 'util'), dst='include')
-        self.copy('libgetarg.a', src=os.path.join('sources', 'util'), dst='lib')
+        if self.settings.os == "Windows":
+            shutil.move(os.path.join('sources', 'util', 'libgetarg.a'),
+                        os.path.join('sources', 'util', 'libgetarg.lib'))
+            self.copy('libgetarg.lib', src=os.path.join('sources', 'util'), dst='lib')
+        else:
+            self.copy('libgetarg.a', src=os.path.join('sources', 'util'), dst='lib')
         
     def package_info(self):
         if self.settings.compiler == "Visual Studio":
-            if self.settings.build_type == "Debug":
-                self.cpp_info.libs = ['libgifd', 'getargd']
-            else:
-                self.cpp_info.libs = ['libgif', 'getarg']
+            self.cpp_info.libs = ['libgetarg', 'gif']
         else:
             self.cpp_info.libs = ['getarg', 'gif']
