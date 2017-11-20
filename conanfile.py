@@ -81,9 +81,9 @@ class ZlibNgConan(ConanFile):
         # Copying zlib.h, zutil.h, zconf.h
         self.copy("*.h", "include", "%s" % "sources", keep_path=False)
         self.copy(pattern="libgif.lib", dst="lib", keep_path=False)
-        self.copy(pattern="*.dylib", dst="lib", keep_path=False)
-        self.copy(pattern="*.a", dst="lib", keep_path=False)
-        self.copy(pattern="*.so*", dst="lib", keep_path=False)
+        self.copy(pattern="libgif.dylib", dst="lib", keep_path=False)
+        self.copy(pattern="libgif.a", dst="lib", keep_path=False)
+        self.copy(pattern="libgif.so*", dst="lib", keep_path=False)
         
     def package_info(self):
         if self.settings.compiler == "Visual Studio":
