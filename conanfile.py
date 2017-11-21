@@ -79,6 +79,10 @@ class GiflibConan(ConanFile):
             getopt = tools.unix_path(getopt)
             getopt = '/cygdrive' + getopt
 
+            cflags = ''
+            if float(str(self.settings.compiler.version)) < 14.0:
+                cflags = '-Dsnprintf=_snprintf'
+
             prefix = tools.unix_path(os.path.abspath(self.package_folder))
             prefix = '/cygdrive' + prefix
             self.run_in_cygwin('./configure '
@@ -86,9 +90,9 @@ class GiflibConan(ConanFile):
                                '--host={host} '
                                '--prefix={prefix} '
                                'CC="$PWD/compile cl -nologo" '
-                               'CFLAGS="-{runtime}" '
+                               'CFLAGS="-{runtime} {cflags}" '
                                'CXX="$PWD/compile cl -nologo" '
-                               'CXXFLAGS="-{runtime}" '
+                               'CXXFLAGS="-{runtime} {cflags}" '
                                'CPPFLAGS="-I{prefix}/include" '
                                'LDFLAGS="-L{prefix}/lib {getopt}" '
                                'LD="link" '
@@ -96,7 +100,7 @@ class GiflibConan(ConanFile):
                                'STRIP=":" '
                                'AR="$PWD/ar-lib lib" '
                                'RANLIB=":" '.format(host=host, prefix=prefix, options=options, getopt=getopt,
-                                                    runtime=str(self.settings.compiler.runtime)))
+                                                    runtime=str(self.settings.compiler.runtime), cflags=cflags))
             self.run_in_cygwin('make')
             self.run_in_cygwin('make install')
 

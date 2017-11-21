@@ -15,7 +15,7 @@ gifcolor - generate color test-pattern GIFs
 
 #ifdef _WIN32
     #if (_MSC_VER < 1900)
-       #include "snprintf.h"
+       #define snprintf _snprintf
     #endif
 #endif
 
