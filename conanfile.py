@@ -37,7 +37,11 @@ class GiflibConan(ConanFile):
             for filename in ["getopt.c", "getopt.h", "unistd.h"]:
                 shutil.copy(filename, os.path.join(zip_name, filename))
             if self.options.shared:
+                self.output.warn("shared build, overwrite gif_lib.h")
+                os.unlink(os.path.join(zip_name, 'lib', 'gif_lib.h'))
                 shutil.copy('gif_lib.h', os.path.join(zip_name, 'lib', 'gif_lib.h'))
+            else:
+                self.output.warn("static build, overwrite gif_lib.h")
         os.rename(zip_name, "sources")
 
     def build(self):
