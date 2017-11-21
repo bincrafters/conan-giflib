@@ -36,12 +36,7 @@ class GiflibConan(ConanFile):
         if self.settings.os == "Windows":
             for filename in ["getopt.c", "getopt.h", "unistd.h"]:
                 shutil.copy(filename, os.path.join(zip_name, filename))
-            if self.options.shared:
-                self.output.warn("shared build, overwrite gif_lib.h")
-                os.unlink(os.path.join(zip_name, 'lib', 'gif_lib.h'))
-                shutil.copy('gif_lib.h', os.path.join(zip_name, 'lib', 'gif_lib.h'))
-            else:
-                self.output.warn("static build, overwrite gif_lib.h")
+            shutil.copy('gif_lib.h', os.path.join(zip_name, 'lib', 'gif_lib.h'))
         os.rename(zip_name, "sources")
 
     def build(self):
@@ -86,6 +81,8 @@ class GiflibConan(ConanFile):
             cflags = ''
             if float(str(self.settings.compiler.version)) < 14.0:
                 cflags = '-Dsnprintf=_snprintf'
+            if not self.options.shared:
+                cflags += ' -DUSE_GIF_LIB'
 
             prefix = tools.unix_path(os.path.abspath(self.package_folder))
             prefix = '/cygdrive' + prefix
@@ -147,5 +144,6 @@ class GiflibConan(ConanFile):
                 self.cpp_info.defines.append('USE_GIF_DLL')
             else:
                 self.cpp_info.libs = ['libgetarg', 'gif']
+                self.cpp_info.defines.append('USE_GIF_LIB')
         else:
             self.cpp_info.libs = ['getarg', 'gif']
