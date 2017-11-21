@@ -68,8 +68,8 @@ class GiflibConan(ConanFile):
             else:
                 options = '--enable-static --disable-shared'
 
-            self.run_in_cygwin('cl getopt.c -DWIN32 /c')
-            self.run_in_cygwin('lib getopt.obj /OUT:getopt.lib')
+            self.run_in_cygwin('cl getopt.c -DWIN32 /c -%s' % str(self.settings.compiler.runtime))
+            self.run_in_cygwin('lib getopt.obj /OUT:getopt.lib /NODEFAULTLIB:LIBCMT')
 
             if self.options.shared:
                 tools.replace_in_file(os.path.join('util', 'Makefile.in'),
