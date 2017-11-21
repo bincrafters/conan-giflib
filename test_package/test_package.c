@@ -52,7 +52,6 @@ int main(int argc, char **argv)
     ColorMapObject *ColorMap;
     GifFileType *GifFile;
     GifColorType	ScratchMap[256];
-    int red, green, blue;
 
     if ((Error = GAGetArgs(argc, argv, CtrlStr,
 			   &GifNoisyPrint,
