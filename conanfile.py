@@ -3,7 +3,7 @@
 
 import os
 import shutil
-from conans import CMake, AutoToolsBuildEnvironment, ConanFile, tools
+from conans import AutoToolsBuildEnvironment, ConanFile, tools
 
 
 class GiflibConan(ConanFile):
@@ -15,7 +15,7 @@ class GiflibConan(ConanFile):
     default_options = "shared=False", "fPIC=True"
     url = "http://github.com/bincrafters/conan-giflib"
     license = "https://sourceforge.net/p/giflib/code/ci/master/tree/COPYING"
-    exports = ["FindGIF.cmake", "getopt.c", "getopt.h", "unistd.h"]
+    exports = ["FindGIF.cmake", "getopt.c", "getopt.h", "unistd.h", 'gif_lib.h']
     description = 'The GIFLIB project maintains the giflib service library, ' \
                   'which has been pulling images out of GIFs since 1989'
     # The exported files I took them from https://github.com/bjornblissing/osg-3rdparty-cmake/tree/master/giflib
@@ -36,6 +36,8 @@ class GiflibConan(ConanFile):
         if self.settings.os == "Windows":
             for filename in ["getopt.c", "getopt.h", "unistd.h"]:
                 shutil.copy(filename, os.path.join(zip_name, filename))
+            if self.options.shared:
+                shutil.copy('gif_lib.h', os.path.join(zip_name, 'lib', 'gif_lib.h'))
         os.rename(zip_name, "sources")
 
     def build(self):
@@ -69,6 +71,10 @@ class GiflibConan(ConanFile):
             self.run_in_cygwin('cl getopt.c -DWIN32 /c')
             self.run_in_cygwin('lib getopt.obj /OUT:getopt.lib')
 
+            if self.options.shared:
+                tools.replace_in_file(os.path.join('util', 'Makefile.in'),
+                                      'DEFS = @DEFS@', 'DEFS = @DEFS@ -DUSE_GIF_DLL')
+
             getopt = os.path.abspath('getopt.lib')
             getopt = tools.unix_path(getopt)
             getopt = '/cygdrive' + getopt
@@ -91,7 +97,6 @@ class GiflibConan(ConanFile):
                                'AR="$PWD/ar-lib lib" '
                                'RANLIB=":" '.format(host=host, prefix=prefix, options=options, getopt=getopt,
                                                     runtime=str(self.settings.compiler.runtime)))
-
             self.run_in_cygwin('make')
             self.run_in_cygwin('make install')
 
@@ -129,6 +134,10 @@ class GiflibConan(ConanFile):
         
     def package_info(self):
         if self.settings.compiler == "Visual Studio":
-            self.cpp_info.libs = ['libgetarg', 'gif']
+            if self.options.shared:
+                self.cpp_info.libs = ['libgetarg', 'gif.dll.lib']
+                self.cpp_info.defines.append('USE_GIF_DLL')
+            else:
+                self.cpp_info.libs = ['libgetarg', 'gif']
         else:
             self.cpp_info.libs = ['getarg', 'gif']
