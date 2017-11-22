@@ -1,44 +1,50 @@
-[![Build Status](https://travis-ci.org/lasote/conan-giflib.svg)](https://travis-ci.org/lasote/conan-giflib)
+[ ![Download](https://api.bintray.com/packages/bincrafters/public-conan/giflib%3Abincrafters/images/download.svg) ](https://bintray.com/bincrafters/public-conan/giflib%3Abincrafters/_latestVersion)
+[![Build Status](https://travis-ci.org/bincrafters/conan-giflib.svg?branch=stable%2F5.1.3)](https://travis-ci.org/bincrafters/conan-giflib)
+[![Build status](https://ci.appveyor.com/api/projects/status/tlwbfjnimn805g1h?svg=true)](https://ci.appveyor.com/project/BinCrafters/conan-giflib)
 
+[Conan.io](https://conan.io) package for [giflib](https://giflib.sourceforge.net) project
 
-# conan-giflib
+The packages generated with this **conanfile** can be found in [Bintray](https://bintray.com/bincrafters/public-conan/giflib%3Abincrafters).
 
-[Conan.io](https://conan.io) package for giflib library
-
-The packages generated with this **conanfile** can be found in [conan.io](https://conan.io/source/giflib/5.1.2/lasote/stable).
-Sources from giflib repository: https://sourceforge.net/p/giflib/code/ci/master/tree/build.asc
-
-## Build packages
-
-    $ pip install conan_package_tools
-    $ python build.py
-    
-## Upload packages to server
-
-    $ conan upload giflib/5.1.2@lasote/stable --all
-    
-## Reuse the packages
+## For Users: Use this package
 
 ### Basic setup
 
-    $ conan install giflib/5.1.2@lasote/stable
-    
+    $ conan install giflib/5.1.3@bincrafters/stable
+
 ### Project setup
 
 If you handle multiple dependencies in your project is better to add a *conanfile.txt*
-    
-    [requires]
-    giflib/5.1.2@lasote/stable
 
-    [options]
-    giflib:shared=true # false
-    
+    [requires]
+    giflib/5.1.3@bincrafters/stable
+
     [generators]
     txt
-    cmake
 
-Complete the installation of requirements for your project running:</small></span>
+Complete the installation of requirements for your project running:
 
-    conan install . 
+    $ mkdir build && cd build && conan install ..
 
-Project setup installs the library (and all his dependencies) and generates the files *conanbuildinfo.txt* and *conanbuildinfo.cmake* with all the paths and variables that you need to link with your dependencies.
+Note: It is recommended that you run conan install from a build directory and not the root of the project directory.  This is because conan generates *conanbuildinfo* files specific to a single build configuration which by default comes from an autodetected default profile located in ~/.conan/profiles/default .  If you pass different build configuration options to conan install, it will generate different *conanbuildinfo* files.  Thus, they should not be added to the root of the project, nor committed to git.
+
+## For Packagers: Publish this Package
+
+The example below shows the commands used to publish to bincrafters conan repository. To publish to your own conan respository (for example, after forking this git repository), you will need to change the commands below accordingly.
+
+## Build and package
+
+The following command both runs all the steps of the conan file, and publishes the package to the local system cache.  This includes downloading dependencies from "build_requires" and "requires" , and then running the build() method.
+
+    $ conan create bincrafters/stable
+
+## Add Remote
+
+    $ conan remote add bincrafters "https://api.bintray.com/conan/bincrafters/public-conan"
+
+## Upload
+
+    $ conan upload giflib/5.1.3@bincrafters/stable --all -r bincrafters
+
+## License
+[giflib license](LICENSE)

@@ -15,7 +15,7 @@ class GiflibConan(ConanFile):
     default_options = "shared=False", "fPIC=True"
     url = "http://github.com/bincrafters/conan-giflib"
     license = "https://sourceforge.net/p/giflib/code/ci/master/tree/COPYING"
-    exports = ["FindGIF.cmake", "getopt.c", "getopt.h", "unistd.h", 'gif_lib.h']
+    exports = ["FindGIF.cmake", "getopt.c", "getopt.h", "unistd.h", "gif_lib.h", "LICENSE"]
     description = 'The GIFLIB project maintains the giflib service library, ' \
                   'which has been pulling images out of GIFs since 1989'
     # The exported files I took them from https://github.com/bjornblissing/osg-3rdparty-cmake/tree/master/giflib
