@@ -9,21 +9,17 @@ from conans import AutoToolsBuildEnvironment, ConanFile, tools
 class GiflibConan(ConanFile):
     name = "giflib"
     version = "5.1.3"
+    description = 'A library and utilities for reading and writing GIF images.'
+    url = "http://github.com/bincrafters/conan-giflib"
+    license = "MIT"
+    exports = ["LICENSE.md"]
+    exports_sources = ["FindGIF.cmake", "getopt.c", "getopt.h", "unistd.h", "gif_lib.h", "LICENSE"]
     generators = "cmake"
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False], "fPIC": [True, False]}
     default_options = "shared=False", "fPIC=True"
-    url = "http://github.com/bincrafters/conan-giflib"
-    license = "https://sourceforge.net/p/giflib/code/ci/master/tree/COPYING"
-    exports = ["FindGIF.cmake", "getopt.c", "getopt.h", "unistd.h", "gif_lib.h", "LICENSE"]
-    description = 'The GIFLIB project maintains the giflib service library, ' \
-                  'which has been pulling images out of GIFs since 1989'
     # The exported files I took them from https://github.com/bjornblissing/osg-3rdparty-cmake/tree/master/giflib
 
-    def build_requirements(self):
-        if self.settings.os == "Windows":
-            self.build_requires("cygwin_installer/2.9.0@bincrafters/testing")
-    
     def config(self):
         del self.settings.compiler.libcxx
         
@@ -46,14 +42,19 @@ class GiflibConan(ConanFile):
             self.build_configure()
 
     def run_in_cygwin(self, command):
-        with tools.environment_append({'PATH': [self.deps_env_info['cygwin_installer'].CYGWIN_BIN]}):
-            bash = "%CYGWIN_BIN%\\bash"
-            vcvars_command = tools.vcvars_command(self.settings)
-            self.run("{vcvars_command} && {bash} -c ^'{command}'".format(
-                vcvars_command=vcvars_command,
-                bash=bash,
-                command=command))
+        vcvars_command = tools.vcvars_command(self.settings)
+        bash = "%CYGWIN_BIN%\\bash"
+        command_escaped = tools.escape_windows_cmd(command)
+        
+        complete_command = "{vcvars_command} && {bash} -c {command}".format(
+            vcvars_command=vcvars_command,
+            bash=bash,
+            command=command_escaped
+        )
+        self.run(complete_command)
+        
 
+                
     def build_windows(self):
         with tools.chdir("sources"):
             if self.settings.arch == "x86":
@@ -84,8 +85,7 @@ class GiflibConan(ConanFile):
             if not self.options.shared:
                 cflags += ' -DUSE_GIF_LIB'
 
-            prefix = tools.unix_path(os.path.abspath(self.package_folder))
-            prefix = '/cygdrive' + prefix
+            prefix = tools.unix_path(os.path.abspath(self.package_folder), path_flavor=tools.CYGWIN))
             self.run_in_cygwin('./configure '
                                '{options} '
                                '--host={host} '
