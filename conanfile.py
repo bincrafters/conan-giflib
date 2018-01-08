@@ -85,7 +85,7 @@ class GiflibConan(ConanFile):
             if not self.options.shared:
                 cflags += ' -DUSE_GIF_LIB'
 
-            prefix = tools.unix_path(os.path.abspath(self.package_folder), path_flavor=tools.CYGWIN))
+            prefix = tools.unix_path(os.path.abspath(self.package_folder), path_flavor=tools.CYGWIN)
             self.run_in_cygwin('./configure '
                                '{options} '
                                '--host={host} '
