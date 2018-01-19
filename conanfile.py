@@ -127,6 +127,7 @@ class GiflibConan(ConanFile):
             env_build.make(args=['install'])
 
     def package(self):
+        self.copy(pattern="COPYING*", dst="licenses", src=self.source_subfolder, ignore_case=True, keep_path=False)
         # Copy FindGIF.cmake to package
         self.copy("FindGIF.cmake", ".", ".")
         self.copy('getarg.h', src=os.path.join(self.source_subfolder, 'util'), dst='include')
