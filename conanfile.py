@@ -13,7 +13,7 @@ class GiflibConan(ConanFile):
     url = "http://github.com/bincrafters/conan-giflib"
     license = "MIT"
     exports = ["LICENSE.md"]
-    exports_sources = ["FindGIF.cmake", "getopt.c", "getopt.h", "unistd.h", "gif_lib.h", "LICENSE"]
+    exports_sources = ["FindGIF.cmake", "getopt.c", "getopt.h", "unistd.h", "gif_lib.h"]
     generators = "cmake"
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False], "fPIC": [True, False]}
@@ -24,7 +24,7 @@ class GiflibConan(ConanFile):
 
     def config(self):
         del self.settings.compiler.libcxx
-        
+
         if self.settings.os == "Windows":
             self.options.remove("fPIC")
 
@@ -47,16 +47,14 @@ class GiflibConan(ConanFile):
         vcvars_command = tools.vcvars_command(self.settings)
         bash = "%CYGWIN_BIN%\\bash"
         command_escaped = tools.escape_windows_cmd(command)
-        
+
         complete_command = "{vcvars_command} && {bash} -c {command}".format(
             vcvars_command=vcvars_command,
             bash=bash,
             command=command_escaped
         )
         self.run(complete_command)
-        
 
-                
     def build_windows(self):
         with tools.chdir(self.source_subfolder):
             if self.settings.arch == "x86":
@@ -137,7 +135,7 @@ class GiflibConan(ConanFile):
             self.copy('libgetarg.lib', src=os.path.join(self.source_subfolder, 'util'), dst='lib')
         else:
             self.copy('libgetarg.a', src=os.path.join(self.source_subfolder, 'util'), dst='lib')
-        
+
     def package_info(self):
         if self.settings.compiler == "Visual Studio":
             if self.options.shared:
