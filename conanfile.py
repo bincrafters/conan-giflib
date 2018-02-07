@@ -68,16 +68,14 @@ class GiflibConan(ConanFile):
             else:
                 options = '--enable-static --disable-shared'
 
-            if self.options.shared:
-                tools.replace_in_file(os.path.join('util', 'Makefile.in'),
-                                      'DEFS = @DEFS@', 'DEFS = @DEFS@ -DUSE_GIF_DLL')
-
             tools.save(os.path.join('util', 'giftool.c'), "int main() { return 0; }")
 
             cflags = ''
             if float(str(self.settings.compiler.version)) < 14.0:
                 cflags = '-Dsnprintf=_snprintf'
-            if not self.options.shared:
+            if self.options.shared:
+                cflags += ' -DUSE_GIF_DLL'
+            else:
                 cflags += ' -DUSE_GIF_LIB'
 
             prefix = tools.unix_path(os.path.abspath(self.package_folder), path_flavor=tools.CYGWIN)
