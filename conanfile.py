@@ -13,7 +13,7 @@ class GiflibConan(ConanFile):
     url = "http://github.com/bincrafters/conan-giflib"
     license = "MIT"
     exports = ["LICENSE.md"]
-    exports_sources = ["FindGIF.cmake", "unistd.h", "gif_lib.h"]
+    exports_sources = ["FindGIF.cmake", "unistd.h", "stdbool.h", "gif_lib.h"]
     generators = "cmake"
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False], "fPIC": [True, False]}
@@ -31,11 +31,14 @@ class GiflibConan(ConanFile):
     def source(self):
         zip_name = "%s-%s" % (self.name, self.version)
         tools.get("http://downloads.sourceforge.net/project/giflib/%s.tar.gz" % zip_name)
-        if self.settings.os == "Windows":
-            for filename in ["unistd.h"]:
-                shutil.copy(filename, os.path.join(zip_name, filename))
-            shutil.copy('gif_lib.h', os.path.join(zip_name, 'lib', 'gif_lib.h'))
         os.rename(zip_name, self.source_subfolder)
+
+        if self.settings.os == "Windows":
+            # stdbool.h is needed for compilation only for VS older than 2013 (v12)
+            if int(str(self.settings.compiler.version)) < 12:
+                shutil.copy('stdbool.h', os.path.join(self.source_subfolder, 'lib'))
+            shutil.copy('gif_lib.h', os.path.join(self.source_subfolder, 'lib'))
+            shutil.copy('unistd.h', os.path.join(self.source_subfolder, 'lib'))
 
     def build(self):
         if self.settings.compiler == "Visual Studio":
