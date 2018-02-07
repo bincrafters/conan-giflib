@@ -13,7 +13,7 @@ class GiflibConan(ConanFile):
     url = "http://github.com/bincrafters/conan-giflib"
     license = "MIT"
     exports = ["LICENSE.md"]
-    exports_sources = ["FindGIF.cmake", "unistd.h", "gif_lib.h"]
+    exports_sources = ["unistd.h", "gif_lib.h"]
     generators = "cmake"
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False], "fPIC": [True, False]}
@@ -119,8 +119,6 @@ class GiflibConan(ConanFile):
 
     def package(self):
         self.copy(pattern="COPYING*", dst="licenses", src=self.source_subfolder, ignore_case=True, keep_path=False)
-        # Copy FindGIF.cmake to package
-        self.copy("FindGIF.cmake", ".", ".")
 
     def package_info(self):
         if self.settings.compiler == "Visual Studio":
