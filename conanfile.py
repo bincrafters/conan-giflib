@@ -99,14 +99,27 @@ class GiflibConan(ConanFile):
             self.run_in_cygwin('make install')
 
     def build_configure(self):
-        env_build = AutoToolsBuildEnvironment(self)
-        env_build.fpic = self.options.fPIC
+        env_build = AutoToolsBuildEnvironment(self, win_bash=self.settings.os == 'Windows')
+        if self.settings.os != "Windows":
+            env_build.fpic = self.options.fPIC
 
-        args = ['--prefix=%s' % os.path.abspath(self.package_folder)]
+        prefix = os.path.abspath(self.package_folder)
+        if self.settings.os == 'Windows':
+            prefix = tools.unix_path(prefix)
+        args = ['--prefix=%s' % prefix]
         if self.options.shared:
             args.extend(['--disable-static', '--enable-shared'])
         else:
             args.extend(['--enable-static', '--disable-shared'])
+
+        # mingw-specific
+        if self.settings.os == 'Windows':
+            if self.settings.arch == "x86_64":
+                config_args.append('--build=x86_64-w64-mingw32')
+                config_args.append('--host=x86_64-w64-mingw32')
+            if self.settings.arch == "x86":
+                config_args.append('--build=i686-w64-mingw32')
+                config_args.append('--host=i686-w64-mingw32')
 
         with tools.chdir(self.source_subfolder):
             if self.settings.os == "Macos":
