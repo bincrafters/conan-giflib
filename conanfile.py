@@ -19,6 +19,7 @@ class GiflibConan(ConanFile):
     options = {"shared": [True, False], "fPIC": [True, False]}
     default_options = "shared=False", "fPIC=True"
     # The exported files I took them from https://github.com/bjornblissing/osg-3rdparty-cmake/tree/master/giflib
+    # refactored a little to adopt stdbool.h
 
     source_subfolder = "source_subfolder"
 
@@ -73,11 +74,7 @@ class GiflibConan(ConanFile):
 
             tools.save(os.path.join('util', 'giftool.c'), "int main() { return 0; }")
 
-            cflags = ''
-            if self.options.shared:
-                cflags += ' -DUSE_GIF_DLL'
-            else:
-                cflags += ' -DUSE_GIF_LIB'
+            cflags = '-DUSE_GIF_DLL' if self.options.shared else '-DUSE_GIF_LIB'
 
             prefix = tools.unix_path(os.path.abspath(self.package_folder), path_flavor=tools.CYGWIN)
             self.run_in_cygwin('./configure '
@@ -95,7 +92,7 @@ class GiflibConan(ConanFile):
                                'STRIP=":" '
                                'AR="$PWD/ar-lib lib" '
                                'RANLIB=":" '.format(host=host, prefix=prefix, options=options,
-                                                    runtime=str(self.settings.compiler.runtime), cflags=cflags))
+                                                    runtime=self.settings.compiler.runtime, cflags=cflags))
             self.run_in_cygwin('make')
             self.run_in_cygwin('make install')
 
