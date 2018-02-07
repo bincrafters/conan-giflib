@@ -33,7 +33,21 @@ extern "C" {
 #define GIF_OK      1
 
 #include <stddef.h>
-#include <stdbool.h>
+
+
+#ifdef _MSC_VER
+    #if (_MSC_VER >= 1800)
+        /* C99 is not supported for MSVC vefore VS2013 */
+        #include <stdbool.h>
+    #else
+        #ifndef __cplusplus
+        typedef int bool;
+        #define false 0
+        #define true 1
+        #endif
+    #endif
+#endif
+
 
 #define GIF_STAMP "GIFVER"          /* First chars in file - GIF stamp.  */
 #define GIF_STAMP_LEN sizeof(GIF_STAMP) - 1
