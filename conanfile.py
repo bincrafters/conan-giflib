@@ -74,7 +74,9 @@ class GiflibConan(ConanFile):
             else:
                 options = '--enable-static --disable-shared'
 
-            cflags = '-DUSE_GIF_DLL' if self.options.shared else '-DUSE_GIF_LIB'
+            cflags = ''
+            if not self.options.shared:
+                cflags = '-DUSE_GIF_LIB'
 
             prefix = tools.unix_path(os.path.abspath(self.package_folder), path_flavor=tools.CYGWIN)
             self.run_in_cygwin('./configure '
@@ -124,6 +126,7 @@ class GiflibConan(ConanFile):
         if self.settings.compiler == "Visual Studio":
             if self.options.shared:
                 self.cpp_info.libs = ['gif.dll.lib']
+                # defined only for consuming package to use dllimport
                 self.cpp_info.defines.append('USE_GIF_DLL')
             else:
                 self.cpp_info.libs = ['gif']
