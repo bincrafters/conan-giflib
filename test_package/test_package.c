@@ -1,33 +1,13 @@
-/*****************************************************************************
-
-gifcolor - generate color test-pattern GIFs
-
-*****************************************************************************/
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#include <stdbool.h>
 
 #include "gif_lib.h"
-#include "getarg.h"
 
-
-#define PROGRAM_NAME	"gifcolor"
 
 #define LINE_LEN		40
 #define IMAGEWIDTH		LINE_LEN*GIF_FONT_WIDTH
-
-static char
-    *VersionStr =
-	PROGRAM_NAME
-	VERSION_COOKIE
-	"	Gershon Elber,	"
-	__DATE__ ",   " __TIME__ "\n"
-	"(C) Copyright 1989 Gershon Elber.\n";
-static char
-    *CtrlStr = PROGRAM_NAME " v%- b%-Background!d h%-";
 
 static int BackGround = 0;
 static void QuitGifError(GifFileType *GifFile);
@@ -39,40 +19,24 @@ static void GenRasterTextLine(GifRowType *RasterBuffer, char *TextLine,
 ******************************************************************************/
 int main(int argc, char **argv)
 {
-    int	i, j, l, GifNoisyPrint, ColorMapSize, ErrorCode;
-    bool Error, BackGroundFlag = false, HelpFlag = false;
+    int	i, j, l, ColorMapSize, ErrorCode;
     char Line[LINE_LEN];
     GifRowType RasterBuffer[GIF_FONT_HEIGHT];
     ColorMapObject *ColorMap;
     GifFileType *GifFile;
     GifColorType	ScratchMap[256];
 
-    if ((Error = GAGetArgs(argc, argv, CtrlStr,
-			   &GifNoisyPrint,
-			   &BackGroundFlag, &BackGround,
-			   &HelpFlag)) != false) {
-	GAPrintErrMsg(Error);
-	GAPrintHowTo(CtrlStr);
-	exit(EXIT_FAILURE);
-    }
-
-    if (HelpFlag) {
-	(void)fprintf(stderr, VersionStr, GIFLIB_MAJOR, GIFLIB_MINOR);
-	GAPrintHowTo(CtrlStr);
-	exit(EXIT_SUCCESS);
-    }
-
     /* Allocate the raster buffer for GIF_FONT_HEIGHT scan lines. */
     for (i = 0; i < GIF_FONT_HEIGHT; i++)
     {
 	if ((RasterBuffer[i] = (GifRowType) malloc(sizeof(GifPixelType) *
 							IMAGEWIDTH)) == NULL)
-	    GIF_EXIT("Failed to allocate memory required, aborted.");
+        exit(1);
     }
 
     /* Open stdout for the output file: */
     if ((GifFile = EGifOpenFileName("out.gif", 0, &ErrorCode)) == NULL) {
-	PrintGifError(ErrorCode);
+	printf("error: %d\n", ErrorCode);
 	exit(EXIT_FAILURE);
     }
 
@@ -85,7 +49,7 @@ int main(int argc, char **argv)
     }
 
     if ((ColorMap = GifMakeMapObject(1 << GifBitSize(ColorMapSize), ScratchMap)) == NULL)
-	GIF_EXIT("Failed to allocate memory required, aborted.");
+	exit(1);
 
     if (EGifPutScreenDesc(GifFile,
 			  IMAGEWIDTH, ColorMapSize * GIF_FONT_HEIGHT,
@@ -98,8 +62,8 @@ int main(int argc, char **argv)
 	0, 0, IMAGEWIDTH, ColorMapSize * GIF_FONT_HEIGHT, false, NULL) == GIF_ERROR)
 	QuitGifError(GifFile);
 
-    GifQprintf("\n%s: Image 1 at (%d, %d) [%dx%d]:     ",
-		    PROGRAM_NAME, GifFile->Image.Left, GifFile->Image.Top,
+    printf("\n%s: Image 1 at (%d, %d) [%dx%d]:     \n",
+		    "test_package", GifFile->Image.Left, GifFile->Image.Top,
 		    GifFile->Image.Width, GifFile->Image.Height);
 
     for (i = l = 0; i < ColorMap->ColorCount; i++) {
@@ -112,13 +76,13 @@ int main(int argc, char **argv)
 	for (j = 0; j < GIF_FONT_HEIGHT; j++) {
 	    if (EGifPutLine(GifFile, RasterBuffer[j], IMAGEWIDTH) == GIF_ERROR)
 		QuitGifError(GifFile);
-	    GifQprintf("\b\b\b\b%-4d", l++);
+	    printf("\b\b\b\b%-4d", l++);
 	}
     }
 
     if (EGifCloseFile(GifFile, &ErrorCode) == GIF_ERROR)
     {
-	PrintGifError(ErrorCode);
+        printf("error: %d\n", ErrorCode);
 	if (GifFile != NULL) {
 	    EGifCloseFile(GifFile, NULL);
 	}
@@ -158,8 +122,10 @@ static void GenRasterTextLine(GifRowType *RasterBuffer, char *TextLine,
 static void QuitGifError(GifFileType *GifFile)
 {
     if (GifFile != NULL) {
-	PrintGifError(GifFile->Error);
+        printf("error: %d\n", GifFile->Error);
 	EGifCloseFile(GifFile, NULL);
     }
     exit(EXIT_FAILURE);
 }
+
+/* vim: ts=8 sw=8 et */
