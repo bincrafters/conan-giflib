@@ -42,6 +42,11 @@ class GiflibConan(ConanFile):
             shutil.copy('unistd.h', os.path.join(self.source_subfolder, 'lib'))
 
     def build(self):
+        # disable util build - tools and internal libs
+        tools.replace_in_file(os.path.join(self.source_subfolder, "Makefile.in"),
+                              'SUBDIRS = lib util pic $(am__append_1)',
+                              'SUBDIRS = lib pic $(am__append_1)')
+
         if self.settings.compiler == "Visual Studio":
             self.build_windows()
         else:
@@ -71,8 +76,6 @@ class GiflibConan(ConanFile):
                 options = '--disable-static --enable-shared'
             else:
                 options = '--enable-static --disable-shared'
-
-            tools.save(os.path.join('util', 'giftool.c'), "int main() { return 0; }")
 
             cflags = '-DUSE_GIF_DLL' if self.options.shared else '-DUSE_GIF_LIB'
 
@@ -119,21 +122,14 @@ class GiflibConan(ConanFile):
         self.copy(pattern="COPYING*", dst="licenses", src=self.source_subfolder, ignore_case=True, keep_path=False)
         # Copy FindGIF.cmake to package
         self.copy("FindGIF.cmake", ".", ".")
-        self.copy('getarg.h', src=os.path.join(self.source_subfolder, 'util'), dst='include')
-        if self.settings.os == "Windows":
-            shutil.move(os.path.join(self.source_subfolder, 'util', 'libgetarg.a'),
-                        os.path.join(self.source_subfolder, 'util', 'libgetarg.lib'))
-            self.copy('libgetarg.lib', src=os.path.join(self.source_subfolder, 'util'), dst='lib')
-        else:
-            self.copy('libgetarg.a', src=os.path.join(self.source_subfolder, 'util'), dst='lib')
 
     def package_info(self):
         if self.settings.compiler == "Visual Studio":
             if self.options.shared:
-                self.cpp_info.libs = ['libgetarg', 'gif.dll.lib']
+                self.cpp_info.libs = ['gif.dll.lib']
                 self.cpp_info.defines.append('USE_GIF_DLL')
             else:
-                self.cpp_info.libs = ['libgetarg', 'gif']
+                self.cpp_info.libs = ['gif']
                 self.cpp_info.defines.append('USE_GIF_LIB')
         else:
-            self.cpp_info.libs = ['getarg', 'gif']
+            self.cpp_info.libs = ['gif']
