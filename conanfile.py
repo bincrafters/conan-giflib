@@ -34,7 +34,7 @@ class GiflibConan(ConanFile):
         tools.get("http://downloads.sourceforge.net/project/giflib/%s.tar.gz" % zip_name)
         os.rename(zip_name, self.source_subfolder)
 
-        if self.settings.os == "Windows":
+        if self.settings.compiler == "Visual Studio":
             shutil.copy('gif_lib.h', os.path.join(self.source_subfolder, 'lib'))
             shutil.copy('unistd.h', os.path.join(self.source_subfolder, 'lib'))
 
