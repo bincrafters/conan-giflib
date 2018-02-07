@@ -100,7 +100,7 @@ static void GenRasterTextLine(GifRowType *RasterBuffer, char *TextLine,
 {
     unsigned char c;
     unsigned char Byte, Mask;
-    int i, j, k, CharPosX, Len = strlen(TextLine);
+    int i, j, k, CharPosX, Len = (int)strlen(TextLine);
 
     for (i = 0; i < BufferWidth; i++)
         for (j = 0; j < GIF_FONT_HEIGHT; j++) RasterBuffer[j][i] = BackGround;
