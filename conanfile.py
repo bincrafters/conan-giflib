@@ -13,7 +13,7 @@ class GiflibConan(ConanFile):
     url = "http://github.com/bincrafters/conan-giflib"
     license = "MIT"
     exports = ["LICENSE.md"]
-    exports_sources = ["FindGIF.cmake", "getopt.c", "getopt.h", "unistd.h", "gif_lib.h"]
+    exports_sources = ["FindGIF.cmake", "unistd.h", "gif_lib.h"]
     generators = "cmake"
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False], "fPIC": [True, False]}
@@ -32,7 +32,7 @@ class GiflibConan(ConanFile):
         zip_name = "%s-%s" % (self.name, self.version)
         tools.get("http://downloads.sourceforge.net/project/giflib/%s.tar.gz" % zip_name)
         if self.settings.os == "Windows":
-            for filename in ["getopt.c", "getopt.h", "unistd.h"]:
+            for filename in ["unistd.h"]:
                 shutil.copy(filename, os.path.join(zip_name, filename))
             shutil.copy('gif_lib.h', os.path.join(zip_name, 'lib', 'gif_lib.h'))
         os.rename(zip_name, self.source_subfolder)
@@ -68,16 +68,11 @@ class GiflibConan(ConanFile):
             else:
                 options = '--enable-static --disable-shared'
 
-            self.run_in_cygwin('cl getopt.c -DWIN32 /c -%s' % str(self.settings.compiler.runtime))
-            self.run_in_cygwin('lib getopt.obj /OUT:getopt.lib /NODEFAULTLIB:LIBCMT')
-
             if self.options.shared:
                 tools.replace_in_file(os.path.join('util', 'Makefile.in'),
                                       'DEFS = @DEFS@', 'DEFS = @DEFS@ -DUSE_GIF_DLL')
 
-            getopt = os.path.abspath('getopt.lib')
-            getopt = tools.unix_path(getopt)
-            getopt = '/cygdrive' + getopt
+            tools.save(os.path.join('util', 'giftool.c'), "int main() { return 0; }")
 
             cflags = ''
             if float(str(self.settings.compiler.version)) < 14.0:
@@ -95,12 +90,12 @@ class GiflibConan(ConanFile):
                                'CXX="$PWD/compile cl -nologo" '
                                'CXXFLAGS="-{runtime} {cflags}" '
                                'CPPFLAGS="-I{prefix}/include" '
-                               'LDFLAGS="-L{prefix}/lib {getopt}" '
+                               'LDFLAGS="-L{prefix}/lib" '
                                'LD="link" '
                                'NM="dumpbin -symbols" '
                                'STRIP=":" '
                                'AR="$PWD/ar-lib lib" '
-                               'RANLIB=":" '.format(host=host, prefix=prefix, options=options, getopt=getopt,
+                               'RANLIB=":" '.format(host=host, prefix=prefix, options=options,
                                                     runtime=str(self.settings.compiler.runtime), cflags=cflags))
             self.run_in_cygwin('make')
             self.run_in_cygwin('make install')
