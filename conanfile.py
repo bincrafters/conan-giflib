@@ -115,11 +115,11 @@ class GiflibConan(ConanFile):
         # mingw-specific
         if self.settings.os == 'Windows':
             if self.settings.arch == "x86_64":
-                config_args.append('--build=x86_64-w64-mingw32')
-                config_args.append('--host=x86_64-w64-mingw32')
+                args.append('--build=x86_64-w64-mingw32')
+                args.append('--host=x86_64-w64-mingw32')
             if self.settings.arch == "x86":
-                config_args.append('--build=i686-w64-mingw32')
-                config_args.append('--host=i686-w64-mingw32')
+                args.append('--build=i686-w64-mingw32')
+                args.append('--host=i686-w64-mingw32')
 
         with tools.chdir(self.source_subfolder):
             if self.settings.os == "Macos":
