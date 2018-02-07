@@ -46,6 +46,10 @@ extern "C" {
         #define true 1
         #endif
     #endif
+
+    #if (_MSC_VER < 1900)
+       #define snprintf _snprintf
+    #endif
 #endif
 
 

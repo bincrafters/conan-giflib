@@ -74,8 +74,6 @@ class GiflibConan(ConanFile):
             tools.save(os.path.join('util', 'giftool.c'), "int main() { return 0; }")
 
             cflags = ''
-            if float(str(self.settings.compiler.version)) < 14.0:
-                cflags = '-Dsnprintf=_snprintf'
             if self.options.shared:
                 cflags += ' -DUSE_GIF_DLL'
             else:

@@ -13,12 +13,6 @@ gifcolor - generate color test-pattern GIFs
 #include "gif_lib.h"
 #include "getarg.h"
 
-#ifdef _WIN32
-    #if (_MSC_VER < 1900)
-       #define snprintf _snprintf
-    #endif
-#endif
-
 
 #define PROGRAM_NAME	"gifcolor"
 
