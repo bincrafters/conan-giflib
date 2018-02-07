@@ -13,13 +13,13 @@ class GiflibConan(ConanFile):
     url = "http://github.com/bincrafters/conan-giflib"
     license = "MIT"
     exports = ["LICENSE.md"]
-    exports_sources = ["FindGIF.cmake", "unistd.h", "stdbool.h", "gif_lib.h"]
+    exports_sources = ["FindGIF.cmake", "unistd.h", "gif_lib.h"]
     generators = "cmake"
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False], "fPIC": [True, False]}
     default_options = "shared=False", "fPIC=True"
     # The exported files I took them from https://github.com/bjornblissing/osg-3rdparty-cmake/tree/master/giflib
-    # refactored a little to adopt stdbool.h
+    # refactored a little
 
     source_subfolder = "source_subfolder"
 
@@ -35,9 +35,6 @@ class GiflibConan(ConanFile):
         os.rename(zip_name, self.source_subfolder)
 
         if self.settings.os == "Windows":
-            # stdbool.h is needed for compilation only for VS older than 2013 (v12)
-            if int(str(self.settings.compiler.version)) < 12:
-                shutil.copy('stdbool.h', os.path.join(self.source_subfolder, 'lib'))
             shutil.copy('gif_lib.h', os.path.join(self.source_subfolder, 'lib'))
             shutil.copy('unistd.h', os.path.join(self.source_subfolder, 'lib'))
 
