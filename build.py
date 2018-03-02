@@ -8,7 +8,7 @@ import copy
 
 if __name__ == "__main__":
 
-    builder = build_template_default.get_builder(pure_c=False)
+    builder = build_template_default.get_builder()
 
     items = []
     for item in builder.items:
