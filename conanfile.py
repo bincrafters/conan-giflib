@@ -8,7 +8,7 @@ from conans import AutoToolsBuildEnvironment, ConanFile, tools
 
 class GiflibConan(ConanFile):
     name = "giflib"
-    version = "5.1.3"
+    version = "5.1.4"
     description = 'A library and utilities for reading and writing GIF images.'
     url = "http://github.com/bincrafters/conan-giflib"
     license = "MIT"
