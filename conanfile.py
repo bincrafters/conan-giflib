@@ -35,10 +35,6 @@ class GiflibConan(ConanFile):
         tools.get("http://downloads.sourceforge.net/project/giflib/%s.tar.gz" % zip_name)
         os.rename(zip_name, self.source_subfolder)
 
-        if self.settings.compiler == "Visual Studio":
-            shutil.copy('gif_lib.h', os.path.join(self.source_subfolder, 'lib'))
-            shutil.copy('unistd.h', os.path.join(self.source_subfolder, 'lib'))
-
     def build(self):
         # disable util build - tools and internal libs
         tools.replace_in_file(os.path.join(self.source_subfolder, "Makefile.in"),
@@ -46,6 +42,14 @@ class GiflibConan(ConanFile):
                               'SUBDIRS = lib pic $(am__append_1)')
 
         if self.settings.compiler == "Visual Studio":
+            # fully replace gif_lib.h for VS, with patched version
+            ver_components = self.version.split(".")
+            tools.replace_in_file('gif_lib.h', '@GIFLIB_MAJOR@', ver_components[0])
+            tools.replace_in_file('gif_lib.h', '@GIFLIB_MINOR@', ver_components[1])
+            tools.replace_in_file('gif_lib.h', '@GIFLIB_RELEASE@', ver_components[2])
+            shutil.copy('gif_lib.h', os.path.join(self.source_subfolder, 'lib'))
+            # add unistd.h for VS
+            shutil.copy('unistd.h', os.path.join(self.source_subfolder, 'lib'))
             self.build_windows()
         else:
             self.build_configure()

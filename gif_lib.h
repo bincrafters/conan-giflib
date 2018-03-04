@@ -25,9 +25,9 @@ extern "C" {
   #endif /* USE_GIF_LIB */
 #endif /* _MSC_VER */
 
-#define GIFLIB_MAJOR 5
-#define GIFLIB_MINOR 1
-#define GIFLIB_RELEASE 3
+#define GIFLIB_MAJOR @GIFLIB_MAJOR@
+#define GIFLIB_MINOR @GIFLIB_MINOR@
+#define GIFLIB_RELEASE @GIFLIB_RELEASE@
 
 #define GIF_ERROR   0
 #define GIF_OK      1
