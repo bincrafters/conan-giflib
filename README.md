@@ -1,8 +1,9 @@
 ## Package Status
 
-| Bintray | Appveyor | Travis | 
-|---------|-----------|--------|
-|[![Download](https://api.bintray.com/packages/bincrafters/public-conan/giflib%3Abincrafters/images/download.svg)](https://bintray.com/bincrafters/public-conan/giflib%3Abincrafters/_latestVersion)|[![Build status](https://ci.appveyor.com/api/projects/status/tlwbfjnimn805g1h?svg=true)](https://ci.appveyor.com/project/BinCrafters/conan-giflib)|[![Build Status](https://travis-ci.org/bincrafters/conan-giflib.svg?branch=stable%2F5.1.3)](https://travis-ci.org/bincrafters/conan-giflib)|
+| Bintray | Windows | Linux & macOS |
+|:--------:|:---------:|:-----------------:|
+|[![Download](https://api.bintray.com/packages/bincrafters/public-conan/giflib%3Abincrafters/images/download.svg)](https://bintray.com/bincrafters/public-conan/giflib%3Abincrafters/_latestVersion)|[![Build status](https://ci.appveyor.com/api/projects/status/github/bincrafters/conan-giflib?svg=true)](https://ci.appveyor.com/project/BinCrafters/conan-giflib)|[![Build Status](https://travis-ci.org/bincrafters/conan-giflib.svg)](https://travis-ci.org/bincrafters/conan-giflib)|
+
 
 ## Conan.io Information
 
@@ -39,9 +40,7 @@ The contents of this GIT repository are completely separate from the software be
     ~/.conan/data/<pkg_name>/<pkg_version>/bincrafters/package/<random_package_id>/license/<LICENSE_FILES_HERE>
 
 *Note :   The most common filenames for OSS licenses are `LICENSE` AND `COPYING` without file extensions.*
-	
+
 ### License for Bincrafters recipe:
 
     ~/.conan/data/<pkg_name>/<pkg_version>/bincrafters/export/LICENSE.md
-
-	
