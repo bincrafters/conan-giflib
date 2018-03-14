@@ -41,18 +41,20 @@ class GiflibConan(ConanFile):
                               'SUBDIRS = lib util pic $(am__append_1)',
                               'SUBDIRS = lib pic $(am__append_1)')
 
+        if tools.os_info.is_windows:
+            if tools.os_info.detect_windows_subsystem() not in ("cygwin", "msys2"):
+                raise Exception("This recipe needs a Windows Subsystem to be compiled. "
+                                "You can specify a build_require to:"
+                                " 'msys2_installer/latest@bincrafters/stable' or"
+                                " 'cygwin_installer/2.9.0@bincrafters/stable' or"
+                                " put in the PATH your own installation")
+
         if self.settings.compiler == "Visual Studio":
             self.build_visual()
         else:
             self.build_configure()
 
     def build_visual(self):
-        if tools.os_info.detect_windows_subsystem() not in ("cygwin", "msys2"):
-            raise Exception("This recipe needs a Windows Subsystem to be compiled. "
-                            "You can specify a build_require to:"
-                            " 'msys2_installer/latest@bincrafters/stable' or"
-                            " 'cygwin_installer/2.9.0@bincrafters/stable' or"
-                            " put in the PATH your own installation")
         # fully replace gif_lib.h for VS, with patched version
         ver_components = self.version.split(".")
         tools.replace_in_file('gif_lib.h', '@GIFLIB_MAJOR@', ver_components[0])
