@@ -24,7 +24,7 @@ class GiflibConan(ConanFile):
 
     source_subfolder = "source_subfolder"
 
-    def config(self):
+    def configure(self):
         del self.settings.compiler.libcxx
 
         if self.settings.os == "Windows":
@@ -42,31 +42,26 @@ class GiflibConan(ConanFile):
                               'SUBDIRS = lib pic $(am__append_1)')
 
         if self.settings.compiler == "Visual Studio":
-            # fully replace gif_lib.h for VS, with patched version
-            ver_components = self.version.split(".")
-            tools.replace_in_file('gif_lib.h', '@GIFLIB_MAJOR@', ver_components[0])
-            tools.replace_in_file('gif_lib.h', '@GIFLIB_MINOR@', ver_components[1])
-            tools.replace_in_file('gif_lib.h', '@GIFLIB_RELEASE@', ver_components[2])
-            shutil.copy('gif_lib.h', os.path.join(self.source_subfolder, 'lib'))
-            # add unistd.h for VS
-            shutil.copy('unistd.h', os.path.join(self.source_subfolder, 'lib'))
-            self.build_windows()
+            self.build_visual()
         else:
             self.build_configure()
 
-    def run_in_cygwin(self, command):
-        vcvars_command = tools.vcvars_command(self.settings)
-        bash = "%CYGWIN_BIN%\\bash"
-        command_escaped = tools.escape_windows_cmd(command)
+    def build_visual(self):
+        if tools.os_info.detect_windows_subsystem() not in ("cygwin", "msys2"):
+            raise Exception("This recipe needs a Windows Subsystem to be compiled. "
+                            "You can specify a build_require to:"
+                            " 'msys2_installer/latest@bincrafters/stable' or"
+                            " 'cygwin_installer/2.9.0@bincrafters/stable' or"
+                            " put in the PATH your own installation")
+        # fully replace gif_lib.h for VS, with patched version
+        ver_components = self.version.split(".")
+        tools.replace_in_file('gif_lib.h', '@GIFLIB_MAJOR@', ver_components[0])
+        tools.replace_in_file('gif_lib.h', '@GIFLIB_MINOR@', ver_components[1])
+        tools.replace_in_file('gif_lib.h', '@GIFLIB_RELEASE@', ver_components[2])
+        shutil.copy('gif_lib.h', os.path.join(self.source_subfolder, 'lib'))
+        # add unistd.h for VS
+        shutil.copy('unistd.h', os.path.join(self.source_subfolder, 'lib'))
 
-        complete_command = "{vcvars_command} && {bash} -c {command}".format(
-            vcvars_command=vcvars_command,
-            bash=bash,
-            command=command_escaped
-        )
-        self.run(complete_command)
-
-    def build_windows(self):
         with tools.chdir(self.source_subfolder):
             if self.settings.arch == "x86":
                 host = "i686-w64-mingw32"
@@ -83,25 +78,27 @@ class GiflibConan(ConanFile):
             if not self.options.shared:
                 cflags = '-DUSE_GIF_LIB'
 
-            prefix = tools.unix_path(os.path.abspath(self.package_folder), path_flavor=tools.CYGWIN)
-            self.run_in_cygwin('./configure '
-                               '{options} '
-                               '--host={host} '
-                               '--prefix={prefix} '
-                               'CC="$PWD/compile cl -nologo" '
-                               'CFLAGS="-{runtime} {cflags}" '
-                               'CXX="$PWD/compile cl -nologo" '
-                               'CXXFLAGS="-{runtime} {cflags}" '
-                               'CPPFLAGS="-I{prefix}/include" '
-                               'LDFLAGS="-L{prefix}/lib" '
-                               'LD="link" '
-                               'NM="dumpbin -symbols" '
-                               'STRIP=":" '
-                               'AR="$PWD/ar-lib lib" '
-                               'RANLIB=":" '.format(host=host, prefix=prefix, options=options,
-                                                    runtime=self.settings.compiler.runtime, cflags=cflags))
-            self.run_in_cygwin('make')
-            self.run_in_cygwin('make install')
+            prefix = tools.unix_path(os.path.abspath(self.package_folder))
+            with tools.vcvars(self.settings):
+                command = './configure ' \
+                          '{options} ' \
+                          '--host={host} ' \
+                          '--prefix={prefix} ' \
+                          'CC="$PWD/compile cl -nologo" ' \
+                          'CFLAGS="-{runtime} {cflags}" ' \
+                          'CXX="$PWD/compile cl -nologo" ' \
+                          'CXXFLAGS="-{runtime} {cflags}" ' \
+                          'CPPFLAGS="-I{prefix}/include" ' \
+                          'LDFLAGS="-L{prefix}/lib" ' \
+                          'LD="link" ' \
+                          'NM="dumpbin -symbols" ' \
+                          'STRIP=":" ' \
+                          'AR="$PWD/ar-lib lib" ' \
+                          'RANLIB=":" '.format(host=host, prefix=prefix, options=options,
+                                              runtime=self.settings.compiler.runtime, cflags=cflags)
+                self.run(command, win_bash=True)
+                self.run('make', win_bash=True)
+                self.run('make install', win_bash=True)
 
     def build_configure(self):
         env_build = AutoToolsBuildEnvironment(self, win_bash=self.settings.os == 'Windows')
