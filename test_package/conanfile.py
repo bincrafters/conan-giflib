@@ -12,13 +12,7 @@ class TestPackageConan(ConanFile):
         cmake.build()
 
     def test(self):
-        with tools.environment_append(RunEnvironment(self).vars):
-            img_name = os.path.join(self.source_folder, "testimg.gif")
-            bin_path = os.path.join("bin", "test_package")
-            command = "%s %s" % (bin_path, img_name)
-            if self.settings.os == "Windows":
-                self.run(command)
-            elif self.settings.os == "Macos":
-                self.run("DYLD_LIBRARY_PATH=%s %s" % (os.environ.get('DYLD_LIBRARY_PATH', ''), command))
-            else:
-                self.run("LD_LIBRARY_PATH=%s %s" % (os.environ.get('LD_LIBRARY_PATH', ''), command))
+        img_name = os.path.join(self.source_folder, "testimg.gif")
+        bin_path = os.path.join("bin", "test_package")
+        command = "%s %s" % (bin_path, img_name)
+        self.run(command, run_environment=True)
