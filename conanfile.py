@@ -11,6 +11,7 @@ class GiflibConan(ConanFile):
     version = "5.1.3"
     description = 'A library and utilities for reading and writing GIF images.'
     url = "http://github.com/bincrafters/conan-giflib"
+    author = "Bincrafters <bincrafters@gmail.com>"
     license = "MIT"
     homepage = "http://giflib.sourceforge.net"
     exports = ["LICENSE.md"]
