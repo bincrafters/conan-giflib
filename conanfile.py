@@ -3,6 +3,7 @@
 
 import os
 import shutil
+import platform
 from conans import AutoToolsBuildEnvironment, ConanFile, tools
 
 
@@ -11,6 +12,7 @@ class GiflibConan(ConanFile):
     version = "5.1.3"
     description = 'A library and utilities for reading and writing GIF images.'
     url = "http://github.com/bincrafters/conan-giflib"
+    author = "Bincrafters <bincrafters@gmail.com>"
     license = "MIT"
     homepage = "http://giflib.sourceforge.net"
     exports = ["LICENSE.md"]
@@ -103,7 +105,8 @@ class GiflibConan(ConanFile):
                 self.run('make install', win_bash=True)
 
     def build_configure(self):
-        env_build = AutoToolsBuildEnvironment(self, win_bash=self.settings.os == 'Windows')
+        env_build = AutoToolsBuildEnvironment(self, win_bash=self.settings.os == 'Windows' and
+                                              platform.system() == 'Windows')
         if self.settings.os != "Windows":
             env_build.fpic = self.options.fPIC
 
@@ -115,15 +118,6 @@ class GiflibConan(ConanFile):
             args.extend(['--disable-static', '--enable-shared'])
         else:
             args.extend(['--enable-static', '--disable-shared'])
-
-        # mingw-specific
-        if self.settings.os == 'Windows':
-            if self.settings.arch == "x86_64":
-                args.append('--build=x86_64-w64-mingw32')
-                args.append('--host=x86_64-w64-mingw32')
-            if self.settings.arch == "x86":
-                args.append('--build=i686-w64-mingw32')
-                args.append('--host=i686-w64-mingw32')
 
         with tools.chdir(self.source_subfolder):
             if self.settings.os == "Macos":
