@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from conans.errors import ConanInvalidConfiguration
 import os
 import shutil
 import platform
@@ -20,11 +21,11 @@ class GiflibConan(ConanFile):
     generators = "cmake"
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False], "fPIC": [True, False]}
-    default_options = "shared=False", "fPIC=True"
+    default_options = {'shared': False, 'fPIC': True}
     # The exported files I took them from https://github.com/bjornblissing/osg-3rdparty-cmake/tree/master/giflib
     # refactored a little
 
-    source_subfolder = "source_subfolder"
+    _source_subfolder = "source_subfolder"
 
     def configure(self):
         del self.settings.compiler.libcxx
@@ -35,17 +36,17 @@ class GiflibConan(ConanFile):
     def source(self):
         zip_name = "%s-%s" % (self.name, self.version)
         tools.get("http://downloads.sourceforge.net/project/giflib/%s.tar.gz" % zip_name)
-        os.rename(zip_name, self.source_subfolder)
+        os.rename(zip_name, self._source_subfolder)
 
     def build(self):
         # disable util build - tools and internal libs
-        tools.replace_in_file(os.path.join(self.source_subfolder, "Makefile.in"),
+        tools.replace_in_file(os.path.join(self._source_subfolder, "Makefile.in"),
                               'SUBDIRS = lib util pic $(am__append_1)',
                               'SUBDIRS = lib pic $(am__append_1)')
 
         if tools.os_info.is_windows:
             if tools.os_info.detect_windows_subsystem() not in ("cygwin", "msys2"):
-                raise Exception("This recipe needs a Windows Subsystem to be compiled. "
+                raise ConanInvalidConfiguration("This recipe needs a Windows Subsystem to be compiled. "
                                 "You can specify a build_require to:"
                                 " 'msys2_installer/latest@bincrafters/stable' or"
                                 " 'cygwin_installer/2.9.0@bincrafters/stable' or"
@@ -62,17 +63,17 @@ class GiflibConan(ConanFile):
         tools.replace_in_file('gif_lib.h', '@GIFLIB_MAJOR@', ver_components[0])
         tools.replace_in_file('gif_lib.h', '@GIFLIB_MINOR@', ver_components[1])
         tools.replace_in_file('gif_lib.h', '@GIFLIB_RELEASE@', ver_components[2])
-        shutil.copy('gif_lib.h', os.path.join(self.source_subfolder, 'lib'))
+        shutil.copy('gif_lib.h', os.path.join(self._source_subfolder, 'lib'))
         # add unistd.h for VS
-        shutil.copy('unistd.h', os.path.join(self.source_subfolder, 'lib'))
+        shutil.copy('unistd.h', os.path.join(self._source_subfolder, 'lib'))
 
-        with tools.chdir(self.source_subfolder):
+        with tools.chdir(self._source_subfolder):
             if self.settings.arch == "x86":
                 host = "i686-w64-mingw32"
             elif self.settings.arch == "x86_64":
                 host = "x86_64-w64-mingw32"
             else:
-                raise Exception("unsupported architecture %s" % self.settings.arch)
+                raise ConanInvalidConfiguration("unsupported architecture %s" % self.settings.arch)
             if self.options.shared:
                 options = '--disable-static --enable-shared'
             else:
@@ -119,7 +120,7 @@ class GiflibConan(ConanFile):
         else:
             args.extend(['--enable-static', '--disable-shared'])
 
-        with tools.chdir(self.source_subfolder):
+        with tools.chdir(self._source_subfolder):
             if self.settings.os == "Macos":
                 tools.replace_in_file("configure", r'-install_name \$rpath/\$soname', r'-install_name \$soname')
 
@@ -129,7 +130,7 @@ class GiflibConan(ConanFile):
             env_build.make(args=['install'])
 
     def package(self):
-        self.copy(pattern="COPYING*", dst="licenses", src=self.source_subfolder, ignore_case=True, keep_path=False)
+        self.copy(pattern="COPYING*", dst="licenses", src=self._source_subfolder, ignore_case=True, keep_path=False)
 
     def package_info(self):
         if self.settings.compiler == "Visual Studio":
